@@ -5,45 +5,65 @@ simplement lus à la console!
 */
 
 // Votre version sera dans Participants.<VosNoms>
-package Participants.Console;
+package Participants.JupilleFrank;
+
+import java.awt.Point;
+import java.util.ArrayList;
 
 // Pour l'interopérabilité: il faut une représentation commune des coups!
 import Othello.Move;
 
-// Utile seulement dans cet exemple, pour lire l'entrée de l'utilisateur à la console
-import java.util.Scanner;
-
 // Vous devrez étendre Othello.Joueur pour implémenter votre propre joueur...
 public class Joueur extends Othello.Joueur {
+	
+	private int rivalId;
+	
+	private GameGrid gameGrid;
 
-	// depth: profondeur alpha-beta
-	// playerID: 0 = rouge, 1 = bleu
+	/**
+	 * @param depth Alpha-beta algorithm depth level
+	 * @param playerID 0 = red, 1 = blue
+	 */
 	public Joueur(int depth, int playerID) {
-		super();
+		super(depth, playerID);
+		
+		initJoueur();
 	}
 	
-	Scanner stdin = new Scanner(System.in);
+	private void initJoueur() {
+		rivalId = (playerID == 0) ? 1 : 0;
+		
+		gameGrid = new GameGrid();
+	}
 
 	// Méthode appelée à chaque fois que vous devez jouer un coup.
 	// move est le coup joué par l'adversaire
 	public Move nextPlay(Move move) {
-		// Ici, vous devrez
+		ArrayList<Point> pointsList = null;
+		Move result = null;
+		
+		if (move != null) {
+			System.out.println("PLAYER:");
+			gameGrid.fillBox(move.i, move.j, rivalId);
+			System.out.println();
+		}
+		
+		pointsList = gameGrid.getPossiblesNextPlays(playerID);
+		
+		if (!pointsList.isEmpty()) {
+			result = new Move(pointsList.get(0).x, pointsList.get(0).y);
+			
+			System.out.println("IA:");
+			gameGrid.fillBox(result.i, result.j, playerID);
+			System.out.println();
+		}
+		
 		// - Mettre à jour votre représentation du jeu en fonction du coup joué par l'adversaire
 		// - Décider quel coup jouer (alpha-beta!!)
 		// - Remettre à jour votre représentation du jeu
 		// - Retourner le coup choisi
 		// Mais ici, on se contente de lire à la console:
-		Move result = null;
-		if (move != null) 
-			System.out.println("Coup adverse: " + move.i + ", " + move.j);
-		System.out.println("Votre coup: ");
-		System.out.print("Colonne (-1 si aucun coup possible): ");
-		int i = stdin.nextInt();
-		if (i != -1) {
-			System.out.print("Ligne: ");
-			int j =  stdin.nextInt();
-			result = new Move(i,j);
-		}
+		
 		return result;
 	}
 
