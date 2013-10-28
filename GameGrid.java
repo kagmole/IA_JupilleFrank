@@ -13,10 +13,10 @@ public class GameGrid {
 	private int grid[][];
 	
 	public GameGrid() {
-		initGameGrid();
+		initGridValues();
 	}
 	
-	private void initGameGrid() {
+	private void initGridValues() {
 		grid = new int[GRID_LIMIT][GRID_LIMIT];
 		
 		for (int x = 0; x < GRID_LIMIT; ++x) {
@@ -29,6 +29,14 @@ public class GameGrid {
 		
 		grid[3][4] = RED_BOX;
 		grid[4][3] = RED_BOX;
+	}
+	
+	private void resetGridValues(int gridValues[][]) {
+		for (int x = 0; x < GRID_LIMIT; ++x) {
+			for (int y = 0; y < GRID_LIMIT; ++y) {
+				grid[x][y] = gridValues[x][y];
+			}
+		}
 	}
 	
 	/**
@@ -216,16 +224,17 @@ public class GameGrid {
 		tryToFillLine(x, y, 1, 1, playerId);
 		
 		grid[x][y] = playerId;
+	}
+	
+	public int[][] getGridValues() {
+		return grid;
+	}
+	
+	public GameGrid cloneOf() {
+		GameGrid cloneGameGrid = new GameGrid();
 		
-		for (int i = 0; i < GRID_LIMIT; ++i) {
-			for (int j = 0; j < GRID_LIMIT; ++j) {
-				if (grid[j][i] == -1) {
-					System.out.print("X ");
-				} else {
-					System.out.print(grid[j][i] + " ");
-				}
-			}
-			System.out.println();
-		}
+		cloneGameGrid.resetGridValues(grid);
+		
+		return cloneGameGrid;
 	}
 }

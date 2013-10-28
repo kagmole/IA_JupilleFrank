@@ -1,24 +1,15 @@
-/* 
-Exemple d'implémentation d'un joueur d'Othello. Cette implémentation sert uniquement
-à démontrer le principe, mais n'implémente aucune intelligence: les coups à jouer sont 
-simplement lus à la console!
-*/
-
-// Votre version sera dans Participants.<VosNoms>
 package Participants.JupilleFrank;
 
 import java.awt.Point;
 import java.util.ArrayList;
 
-// Pour l'interopérabilité: il faut une représentation commune des coups!
 import Othello.Move;
 
-// Vous devrez étendre Othello.Joueur pour implémenter votre propre joueur...
 public class Joueur extends Othello.Joueur {
 	
-	private int rivalId;
+	private int rivalID;
 	
-	private GameGrid gameGrid;
+	private GameGrid effectiveGameGrid;
 
 	/**
 	 * @param depth Alpha-beta algorithm depth level
@@ -31,39 +22,48 @@ public class Joueur extends Othello.Joueur {
 	}
 	
 	private void initJoueur() {
-		rivalId = (playerID == 0) ? 1 : 0;
+		rivalID = (playerID == 0) ? 1 : 0;
 		
-		gameGrid = new GameGrid();
+		effectiveGameGrid = new GameGrid();
+	}
+	
+	private GameGridTree buildGameGridTree(GameGrid gameGrid, int depth, int id) {
+		GameGridTree gameGridTree = new GameGridTree(gameGrid);
+		
+		ArrayList<Point> pointsList = gameGrid.getPossiblesNextPlays(id);
+		
+		for (Point point : pointsList) {
+			GameGrid childrenGameGrid = gameGrid.cloneOf();
+			
+			childrenGameGrid.fillBox(point.x, point.y, id);
+			
+			if (depth > 1) {
+				gameGridTree.addChildren(buildGameGridTree(childrenGameGrid, depth - 1, (id == 0) ? 1 : 0));
+			}
+		}
+		return gameGridTree;
 	}
 
-	// Méthode appelée à chaque fois que vous devez jouer un coup.
-	// move est le coup joué par l'adversaire
 	public Move nextPlay(Move move) {
 		ArrayList<Point> pointsList = null;
 		Move result = null;
 		
 		if (move != null) {
-			System.out.println("PLAYER:");
-			gameGrid.fillBox(move.i, move.j, rivalId);
-			System.out.println();
+			effectiveGameGrid.fillBox(move.i, move.j, rivalID);
 		}
 		
-		pointsList = gameGrid.getPossiblesNextPlays(playerID);
+		GameGridTree gameGridTree = buildGameGridTree(effectiveGameGrid, depth, playerID);
+		
+		pointsList = effectiveGameGrid.getPossiblesNextPlays(playerID);
+		
+		// TODO : Remplacer le 0 par la fonction qui détermine quel est le meilleur choix
+		int choice = 0;
 		
 		if (!pointsList.isEmpty()) {
-			result = new Move(pointsList.get(0).x, pointsList.get(0).y);
+			result = new Move(pointsList.get(choice).x, pointsList.get(choice).y);
 			
-			System.out.println("IA:");
-			gameGrid.fillBox(result.i, result.j, playerID);
-			System.out.println();
-		}
-		
-		// - Mettre à jour votre représentation du jeu en fonction du coup joué par l'adversaire
-		// - Décider quel coup jouer (alpha-beta!!)
-		// - Remettre à jour votre représentation du jeu
-		// - Retourner le coup choisi
-		// Mais ici, on se contente de lire à la console:
-		
+			effectiveGameGrid.fillBox(result.i, result.j, playerID);
+		}		
 		return result;
 	}
 
