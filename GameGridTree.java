@@ -6,9 +6,9 @@ public class GameGridTree {
 	
 	public ArrayList<GameGridTree> childrensGameGrids;
 	
-	public GameGrid rootGameGrid;
+	public OthelloGrid rootGameGrid;
 	
-	public GameGridTree(GameGrid rootGameGrid) {
+	public GameGridTree(OthelloGrid rootGameGrid) {
 		this.rootGameGrid = rootGameGrid;
 		
 		childrensGameGrids = new ArrayList<GameGridTree>();
@@ -18,11 +18,11 @@ public class GameGridTree {
 		this(null);
 	}
 	
-	public GameGrid getRoot() {
+	public OthelloGrid getRoot() {
 		return rootGameGrid;
 	}
 	
-	public void setRoot(GameGrid rootGameGrid) {
+	public void setRoot(OthelloGrid rootGameGrid) {
 		this.rootGameGrid = rootGameGrid;
 	}
 	
