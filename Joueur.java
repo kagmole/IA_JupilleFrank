@@ -26,9 +26,8 @@ public class Joueur extends Othello.Joueur {
 		effectiveGameGrid = new OthelloGrid();
 	}
 
-	public Move nextPlay(Move move) {	
+	public Move nextPlay(Move move) {
 		if (move != null) {
-			System.out.println("RIVAL:");
 			effectiveGameGrid.playAndFillBoxes(move.i, move.j, rivalID);
 		}
 		ArrayList<OthelloBox> possiblesPlays = effectiveGameGrid.getPossiblesPlays(playerID);
@@ -36,11 +35,9 @@ public class Joueur extends Othello.Joueur {
 		
 		if (!possiblesPlays.isEmpty()) {
 			result = new Move(possiblesPlays.get(0).getI(), possiblesPlays.get(0).getJ());
-			
-			System.out.println("IA:");
 			effectiveGameGrid.playAndFillBoxes(possiblesPlays.get(0), playerID);
-		}		
+		}
+		System.out.println(effectiveGameGrid.getPlayerPoints(playerID) + " VS " + effectiveGameGrid.getPlayerPoints(rivalID));
 		return result;
 	}
-
 }
