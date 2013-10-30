@@ -37,7 +37,6 @@ public class Joueur extends Othello.Joueur {
 			result = new Move(possiblesPlays.get(0).getI(), possiblesPlays.get(0).getJ());
 			effectiveGameGrid.playAndFillBoxes(possiblesPlays.get(0), playerID);
 		}
-		System.out.println(effectiveGameGrid.getPlayerPoints(playerID) + " VS " + effectiveGameGrid.getPlayerPoints(rivalID));
 		return result;
 	}
 }
