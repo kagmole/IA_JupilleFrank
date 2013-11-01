@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import Othello.Move;
 
 /**
- * "Joueur" class implementation for the artificial intelligenc eof the
+ * "Joueur" class implementation for the artificial intelligence of the
  *  JupilleFrank's group. Its logic is based on values for the grid's boxes.
  * 
  * @author Dany Jupille
