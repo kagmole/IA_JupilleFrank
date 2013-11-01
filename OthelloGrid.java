@@ -1,12 +1,32 @@
 package Participants.JupilleFrank;
 
+import java.awt.Point;
 import java.util.ArrayList;
-import java.util.HashSet;
 
+/**
+ * Class used to represent the situation of the game. It contains the grid
+ * values and has some useful methods for the JupilleFrank's artificial
+ * intelligence.
+ * 
+ * @author Dany Jupille
+ * @author Etienne Frank
+ * @version 1.0
+ */
 public class OthelloGrid {
+	
+	/** Player blue */
+	private static final int BLUE = 1;
+	
+	/** Player red */
+	private static final int RED = 0;
+	
+	/** Empty box */
+	private static final int NO_COLOR = -1;
 
+	/** Othello's grid height and width */
 	private static final int GRID_SIZE = 8;
 	
+	/** Matrix containing standard weightings to determine how many points got a player */
 	private static final int[][] STANDARD_WEIGHTINGS = {
 		{
 			7, 2, 5, 4, 4, 5, 2, 7
@@ -33,414 +53,269 @@ public class OthelloGrid {
 			7, 2, 5, 4, 4, 5, 2, 7
 		}
 	};
-
-	private HashSet<OthelloBox> boxesAtBorder;
 	
-	private int[] playersPoints;
+	/** Current grid situation */
+	private int[][] grid;
 
-	private OthelloBox[][] othelloBoxes;
-
-	public OthelloGrid() {
-		playersPoints = new int[2];
-		playersPoints[OthelloBox.BLUE] = 12;
-		playersPoints[OthelloBox.RED]= 12;
-		
-		initOthelloBoxes();
-		initOthelloStartConfiguration();
+	public OthelloGrid() {		
+		initGridValues();
 	}
-
-	private void initOthelloBoxes() {
-		othelloBoxes = new OthelloBox[GRID_SIZE][GRID_SIZE];
-
+	
+	/** Copy constructor */
+	public OthelloGrid(OthelloGrid clone) {				
+		this();
+		
 		for (int j = 0; j < GRID_SIZE; ++j) {
 			for (int i = 0; i < GRID_SIZE; ++i) {
-				othelloBoxes[i][j] = new OthelloBox(i, j, STANDARD_WEIGHTINGS[i][j]);
-			}
-		}
-
-		/*
-		 * First and last rows relations creation - nothing to do with
-		 * top/bottom
-		 */
-		for (int i = 1; i < GRID_SIZE; ++i) {
-			othelloBoxes[i - 1][0].setRelatedBox(othelloBoxes[i][0],
-					OthelloBox.RIGHT);
-			othelloBoxes[i][0].setRelatedBox(othelloBoxes[i - 1][0],
-					OthelloBox.LEFT);
-
-			othelloBoxes[i - 1][GRID_SIZE - 1].setRelatedBox(
-					othelloBoxes[i][GRID_SIZE - 1], OthelloBox.RIGHT);
-			othelloBoxes[i][GRID_SIZE - 1].setRelatedBox(
-					othelloBoxes[i - 1][GRID_SIZE - 1], OthelloBox.LEFT);
-		}
-
-		/*
-		 * First and last columns relations creation - nothing to do with
-		 * left/right
-		 */
-		for (int j = 1; j < GRID_SIZE; ++j) {
-			othelloBoxes[0][j - 1].setRelatedBox(othelloBoxes[0][j],
-					OthelloBox.BOTTOM);
-			othelloBoxes[0][j].setRelatedBox(othelloBoxes[0][j - 1],
-					OthelloBox.TOP);
-
-			othelloBoxes[GRID_SIZE - 1][j - 1].setRelatedBox(
-					othelloBoxes[GRID_SIZE - 1][j], OthelloBox.BOTTOM);
-			othelloBoxes[GRID_SIZE - 1][j].setRelatedBox(
-					othelloBoxes[GRID_SIZE - 1][j - 1], OthelloBox.TOP);
-		}
-
-		/* Remaining boxes but last row and column relations creation */
-		for (int j = 1; j < GRID_SIZE - 1; ++j) {
-			for (int i = 1; i < GRID_SIZE - 1; ++i) {
-				/* Top-left relation */
-				othelloBoxes[i - 1][j - 1].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.BOTTOM_RIGHT);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i - 1][j - 1],
-						OthelloBox.TOP_LEFT);
-
-				/* Top relation */
-				othelloBoxes[i][j - 1].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.BOTTOM);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i][j - 1],
-						OthelloBox.TOP);
-
-				/* Top-Right relation */
-				othelloBoxes[i + 1][j - 1].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.BOTTOM_LEFT);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i + 1][j - 1],
-						OthelloBox.TOP_RIGHT);
-
-				/* Left relation */
-				othelloBoxes[i - 1][j].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.RIGHT);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i - 1][j],
-						OthelloBox.LEFT);
-
-				/* Right relation */
-				othelloBoxes[i + 1][j].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.LEFT);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i + 1][j],
-						OthelloBox.RIGHT);
-
-				/* Bottom-left relation */
-				othelloBoxes[i - 1][j + 1].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.TOP_RIGHT);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i - 1][j + 1],
-						OthelloBox.BOTTOM_LEFT);
-
-				/* Bottom relation */
-				othelloBoxes[i][j + 1].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.TOP);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i][j + 1],
-						OthelloBox.BOTTOM);
-
-				/* Bottom-right relation */
-				othelloBoxes[i + 1][j + 1].setRelatedBox(othelloBoxes[i][j],
-						OthelloBox.TOP_LEFT);
-				othelloBoxes[i][j].setRelatedBox(othelloBoxes[i + 1][j + 1],
-						OthelloBox.BOTTOM_RIGHT);
+				grid[i][j] = clone.grid[i][j];
 			}
 		}
 	}
-
-	private void initOthelloStartConfiguration() {
-		othelloBoxes[3][3].setColor(OthelloBox.BLUE);
-		othelloBoxes[4][4].setColor(OthelloBox.BLUE);
-
-		othelloBoxes[4][3].setColor(OthelloBox.RED);
-		othelloBoxes[3][4].setColor(OthelloBox.RED);
-
-		boxesAtBorder = new HashSet<OthelloBox>();
-
-		boxesAtBorder.add(othelloBoxes[2][2]);
-		boxesAtBorder.add(othelloBoxes[3][2]);
-		boxesAtBorder.add(othelloBoxes[4][2]);
-		boxesAtBorder.add(othelloBoxes[5][2]);
-
-		boxesAtBorder.add(othelloBoxes[2][3]);
-		boxesAtBorder.add(othelloBoxes[5][3]);
-
-		boxesAtBorder.add(othelloBoxes[2][4]);
-		boxesAtBorder.add(othelloBoxes[5][4]);
-
-		boxesAtBorder.add(othelloBoxes[2][5]);
-		boxesAtBorder.add(othelloBoxes[3][5]);
-		boxesAtBorder.add(othelloBoxes[4][5]);
-		boxesAtBorder.add(othelloBoxes[5][5]);
-	}
-
 	
-	public ArrayList<OthelloBox> getPossiblesPlays(int playerID) {
-		ArrayList<OthelloBox> possiblesPlays = new ArrayList<OthelloBox>();
-		OthelloBox tempBox;
-
-		for (OthelloBox othelloBox : boxesAtBorder) {
-			for (int direction = OthelloBox.START_DIRECTION_ID; direction <= OthelloBox.END_DIRECTION_ID; ++direction) {
-				tempBox = othelloBox.getRelatedBox(direction);
-
-				if (tempBox != null
-						&& tempBox.getColor() != OthelloBox.NO_COLOR
-						&& tempBox.getColor() != playerID) {
-					tempBox = tempBox.getRelatedBox(direction);
-
-					while (tempBox != null
-							&& tempBox.getColor() != OthelloBox.NO_COLOR) {
-						if (tempBox.getColor() == playerID) {
-							possiblesPlays.add(othelloBox);
-							break;
-						}
-						tempBox = tempBox.getRelatedBox(direction);
-					}
-				}
-			}
-		}
-		return possiblesPlays;
-	}
-
-	public void playAndFillBoxes(int i, int j, int playerID) {
-		playAndFillBoxes(othelloBoxes[i][j], playerID);
-	}
-
-	public void playAndFillBoxes(OthelloBox nextPlay, int playerID) {
-		changeBoxesColor(nextPlay, playerID);
-		refreshBoxesAtBorder(nextPlay);
-	}
-
-	private void changeBoxesColor(OthelloBox nextPlay, int playerID) {
-		nextPlay.setColor(playerID);
+	/**
+	 * Base configuration for an Othello game.
+	 */
+	private void initGridValues() {
+		grid = new int[GRID_SIZE][GRID_SIZE];
 		
-		playersPoints[playerID] += nextPlay.getValue();
-
-		int nbIterations = 0;
-		int rivalID = (playerID == OthelloBox.BLUE) ? OthelloBox.RED : OthelloBox.BLUE;
-		OthelloBox tempPlay = nextPlay.getRelatedBox(OthelloBox.TOP_LEFT);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
+		for (int j = 0; j < GRID_SIZE; ++j) {
+			for (int i = 0; i < GRID_SIZE; ++i) {
+				grid[i][j] = NO_COLOR;
 			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.BOTTOM_RIGHT);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.TOP_LEFT);
-			++nbIterations;
 		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.TOP);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.BOTTOM);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.TOP);
-			++nbIterations;
-		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.TOP_RIGHT);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.BOTTOM_LEFT);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.TOP_RIGHT);
-			++nbIterations;
-		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.LEFT);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.RIGHT);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.LEFT);
-			++nbIterations;
-		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.RIGHT);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.LEFT);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.RIGHT);
-			++nbIterations;
-		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.BOTTOM_LEFT);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.TOP_RIGHT);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.BOTTOM_LEFT);
-			++nbIterations;
-		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.BOTTOM);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.TOP);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.BOTTOM);
-			++nbIterations;
-		}
-		nbIterations = 0;
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.BOTTOM_RIGHT);
-
-		while (tempPlay != null) {
-			if (tempPlay.getColor() == OthelloBox.NO_COLOR) {
-				break;
-			}
-
-			if (tempPlay.getColor() == playerID) {
-				while (nbIterations > 0) {
-					tempPlay = tempPlay.getRelatedBox(OthelloBox.TOP_LEFT);
-					tempPlay.setColor(playerID);
-					
-					playersPoints[playerID] += tempPlay.getValue();
-					playersPoints[rivalID] -= tempPlay.getValue();
-
-					--nbIterations;
-				}
-				break;
-			}
-			tempPlay = tempPlay.getRelatedBox(OthelloBox.BOTTOM_RIGHT);
-			++nbIterations;
-		}
-	}
-
-	private void refreshBoxesAtBorder(OthelloBox nextPlay) {
-		boxesAtBorder.remove(nextPlay);
-
-		OthelloBox tempPlay = nextPlay.getRelatedBox(OthelloBox.TOP_LEFT);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.TOP);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.TOP_RIGHT);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.LEFT);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.RIGHT);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.BOTTOM_LEFT);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.BOTTOM);
-
-		if (tempPlay != null && tempPlay.getColor() == OthelloBox.NO_COLOR) {
-			boxesAtBorder.add(tempPlay);
-		}
-		tempPlay = nextPlay.getRelatedBox(OthelloBox.BOTTOM_RIGHT);
+		grid[3][3] = BLUE;
+		grid[4][4] = BLUE;
+		
+		grid[3][4] = RED;
+		grid[4][3] = RED;
 	}
 	
+	/**
+	 * Check if the box is empty and at the border of at less one not empty
+	 * box.
+	 * 
+	 * @param i I position of the box
+	 * @param j J position of the box
+	 * @return <b>true</b> if it is an empty box at border, <b>false</b> otherwise
+	 */
+	private boolean isAtBorder(int i, int j) {
+		if (grid[i][j] == NO_COLOR) {
+			
+			/* We must check its eight neighbors */
+			if (isBoxNotEmpty(i - 1, j - 1)
+					|| isBoxNotEmpty(i - 1, j)
+					|| isBoxNotEmpty(i - 1, j + 1)
+					|| isBoxNotEmpty(i, j - 1)
+					|| isBoxNotEmpty(i, j + 1)
+					|| isBoxNotEmpty(i + 1, j - 1)
+					|| isBoxNotEmpty(i + 1, j)
+					|| isBoxNotEmpty(i + 1, j + 1)) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Check if the box is not empty.
+	 * 
+	 * @param i I position of the box
+	 * @param j J position of the box
+	 * @return <b>true</b> if it is not empty, <b>false</b> otherwise
+	 */
+	private boolean isBoxNotEmpty(int i, int j) {
+		if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+			if (grid[i][j] != NO_COLOR) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Check if the player can fill at least one line by playing this box.
+	 * 
+	 * @param i I position of the box
+	 * @param j J position of the box
+	 * @param playerID Player who wants to play
+	 * @return
+	 */
+	private boolean isPlayable(int i, int j, int playerID) {
+		
+		/* Look for at least one possible line to fill */
+		if (checkForAPlayableLine(i, j, -1, -1, playerID)
+				|| checkForAPlayableLine(i, j, -1, 0, playerID)
+				|| checkForAPlayableLine(i, j, -1, 1, playerID)
+				|| checkForAPlayableLine(i, j, 0, -1, playerID)
+				|| checkForAPlayableLine(i, j, 0, 1, playerID)
+				|| checkForAPlayableLine(i, j, 1, -1, playerID)
+				|| checkForAPlayableLine(i, j, 1, 0, playerID)
+				|| checkForAPlayableLine(i, j, 1, 1, playerID)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Algorithm to check if the line would be fill by the player when playing
+	 * this box.
+	 * 
+	 * @param i I position of the box
+	 * @param j J position of the box
+	 * @param factI -1 = neighbor at left, 0 = neighbor in the same column,
+	 * 1 = neighbor at right
+	 * @param factJ -1 = neighbor at top, 0 = neighbor in the same row,
+	 * 1 = neighbor at bottom
+	 * @param playerID Player who wants to play
+	 * @return <b>true</b> if the line would be fill, <b>false</b> otherwise
+	 */
+	private boolean checkForAPlayableLine(int i, int j, int factI, int factJ, int playerID) {		
+		i += factI;
+		j += factJ;
+		
+		/* Check limits */
+		if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+			
+			/* The first next box ID must be different */
+			if (grid[i][j] != playerID && grid[i][j] != NO_COLOR) {
+				i += factI;
+				j += factJ;
+				
+				/* Search a box with the same ID */
+				while (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+					if (grid[i][j] == playerID) {
+						return true;
+					} else if (grid[i][j] == NO_COLOR) {
+						return false;
+					}
+					
+					i += factI;
+					j += factJ;
+				}
+			}	
+		}
+		return false;
+	}
+	
+	/**
+	 * Algorithm to fill a line if it is possible with the choice of the player.
+	 * 
+	 * @param i I position of the box
+	 * @param j J position of the box
+	 * @param factI -1 = neighbor at left, 0 = neighbor in the same column,
+	 * 1 = neighbor at right
+	 * @param factJ -1 = neighbor at top, 0 = neighbor in the same row,
+	 * 1 = neighbor at bottom
+	 * @param playerID Player who is playing
+	 */
+	private void tryToFillLine(int i, int j, int factI, int factJ, int playerID) {
+		i += factI;
+		j += factJ;
+		
+		int nbIterations = 0;
+		
+		/* Check limits */
+		if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+			
+			/* The first next box ID must be different */
+			if (grid[i][j] != playerID && grid[i][j] != NO_COLOR) {
+				i += factI;
+				j += factJ;
+				
+				++nbIterations;
+				
+				/* Search a box with the same ID */
+				while (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+					if (grid[i][j] == NO_COLOR) {
+						break;
+					} else if (grid[i][j] == playerID) {
+						
+						/* Box with the same ID found : fill previous boxes */
+						while (nbIterations > 0) {
+							i -= factI;
+							j -= factJ;
+							
+							--nbIterations;
+							
+							grid[i][j] = playerID;
+						}
+						break;
+					}
+					i += factI;
+					j += factJ;
+					
+					++nbIterations;
+				}
+			}	
+		}
+	}
+	
+	/**
+	 * Return a list containing all possibles next plays for the player.
+	 * 
+	 * @param playerID Current player ID
+	 * @return List of possibles points for the next play
+	 */
+	public ArrayList<Point> getPossiblesPlays(int playerID) {
+		ArrayList<Point> pointsList = new ArrayList<Point>();
+		
+		for (int j = 0; j < GRID_SIZE; ++j) {
+			for (int i = 0; i < GRID_SIZE; ++i) {
+				if (!isAtBorder(j, i)) {
+					continue;
+				}
+				if (!isPlayable(j, i, playerID)) {
+					continue;
+				}
+				pointsList.add(new Point(j, i));
+			}
+		}		
+		return pointsList;
+	}
+	
+	/**
+	 * Play the choice of the player. Grid will be amended accordingly.
+	 * 
+	 * @param i I position of the box
+	 * @param j J position of the box
+	 * @param playerID Player currently playing
+	 */
+	public void playAndFillBoxes(int i, int j, int playerID) {
+		
+		/* Try to fill lines in each direction */
+		tryToFillLine(i, j, -1, -1, playerID);
+		tryToFillLine(i, j, -1, 0, playerID);
+		tryToFillLine(i, j, -1, 1, playerID);
+		tryToFillLine(i, j, 0, -1, playerID);
+		tryToFillLine(i, j, 0, 1, playerID);
+		tryToFillLine(i, j, 1, -1, playerID);
+		tryToFillLine(i, j, 1, 0, playerID);
+		tryToFillLine(i, j, 1, 1, playerID);
+		
+		/* Finally, fill the choice either */
+		grid[i][j] = playerID;
+	}
+
+	/**
+	 * Return player's points according to the standards weightings.
+	 * 
+	 * @param playerID Player who wants to know his points
+	 * @return Player's points
+	 */
 	public int getPlayerPoints(int playerID) {
-		return playersPoints[playerID];
+		int points = 0;
+		
+		for (int j = 0; j < GRID_SIZE; ++j) {
+			for (int i = 0; i < GRID_SIZE; ++i) {
+				if (grid[i][j] == playerID) {
+					points += STANDARD_WEIGHTINGS[i][j];
+				}
+			}
+		}
+		return points;
 	}
 }
